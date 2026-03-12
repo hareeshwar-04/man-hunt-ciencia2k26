@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MANHUNT - Campus Survival Challenge</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #ff006e;
+            --secondary: #00f5ff;
+            --accent-gold: #ffd700;
+            --accent-green: #00ff88;
+            --bg-dark: #000000;
+            --text-light: #ffffff;
+            --text-gray: #a0aec0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 0, 110, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(0, 245, 255, 0.5); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Background Grid */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            opacity: 0.1;
+            z-index: 1;
+        }
+
+        .grid-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(90deg, #ff006e 1px, transparent 1px),
+                linear-gradient(#ff006e 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: scroll 20s linear infinite;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 80px;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(255, 0, 110, 0.2) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 50%, rgba(0, 245, 255, 0.2) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .hero-glow-1 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, #ff006e 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.1;
+            animation: pulse 4s ease-in-out infinite;
+            top: 80px;
+            left: 40px;
+            z-index: -1;
+        }
+
+        .hero-glow-2 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, #00f5ff 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.1;
+            animation: pulse 4s ease-in-out infinite 1s;
+            bottom: 80px;
+            right: 40px;
+            z-index: -1;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.2; }
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 900px;
+            padding: 40px;
+            z-index: 5;
+            animation: slideInUp 1s ease-out;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 10vw, 7rem);
+            font-weight: 900;
+            letter-spacing: -2px;
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, #ff006e, #00f5ff, #ff006e);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s linear infinite;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.5rem, 5vw, 3rem);
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffffff, #ffffff, #a0aec0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-desc {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            margin-bottom: 50px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--bg-dark);
+            animation: pulse-glow 2s ease-in-out infinite;
+            min-width: 200px;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+            background: transparent;
+            min-width: 200px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 245, 255, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 0, 110, 0.3);
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+
+        .stat-card.cyan {
+            border-color: rgba(0, 245, 255, 0.3);
+        }
+
+        .stat-card.purple {
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+        }
+
+        /* Sections */
+        section {
+            position: relative;
+            padding: 100px 20px;
+            z-index: 10;
+        }
+
+        .section-max-width {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: clamp(2.5rem, 8vw, 3.5rem);
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 60px;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gold-text {
+            color: var(--accent-gold);
+        }
+
+        /* Game Mechanics Grid */
+        .mechanics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .mechanic-card {
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .mechanic-card:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(255, 0, 110, 0.1);
+        }
+
+        .mechanic-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .mechanic-number {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-gray);
+            margin-bottom: 10px;
+        }
+
+        .mechanic-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 12px;
+        }
+
+        .mechanic-desc {
+            color: var(--text-gray);
+            line-height: 1.6;
+        }
+
+        /* Gameplay Twist */
+        .twist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .twist-card {
+            padding: 30px;
+            border: 2px solid;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .twist-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .twist-card:hover {
+            transform: scale(1.05);
+        }
+
+        .twist-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .twist-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .twist-label {
+            font-size: 1.1rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        .twist-desc {
+            font-size: 0.95rem;
+            color: var(--text-gray);
+        }
+
+        .alert-box {
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            background: rgba(255, 215, 0, 0.05);
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .alert-box strong {
+            color: var(--accent-gold);
+        }
+
+        /* Hint System */
+        .hint-container {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 50px 30px;
+            text-align: center;
+        }
+
+        .hint-desc {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            margin-bottom: 30px;
+        }
+
+        .hints-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .hint-item {
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        /* Rules */
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .rule-item {
+            padding: 20px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Why Join */
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .why-card {
+            padding: 30px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), transparent);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .why-card:hover {
+            border-color: rgba(0, 255, 136, 0.6);
+            transform: translateY(-10px);
+        }
+
+        .why-emoji {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .why-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .why-desc {
+            color: var(--text-gray);
+        }
+
+        /* Registration */
+        .register-container {
+            max-width: 600px;
+            margin: 0 auto;
+            border: 2px solid var(--primary);
+            border-radius: 30px;
+            padding: 50px;
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.1), transparent);
+        }
+
+        .register-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-gray);
+            margin-bottom: 15px;
+        }
+
+        .team-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .team-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-light);
+        }
+
+        .team-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .team-btn.active {
+            background: var(--primary);
+            color: var(--bg-dark);
+            border-color: var(--primary);
+        }
+
+        .cost-display {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .cost-label {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .cost-amount {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--bg-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .register-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(255, 0, 110, 0.3);
+        }
+
+        .register-note {
+            text-align: center;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px 20px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .footer-main {
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .footer-sub {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                min-width: 100%;
+                max-width: 300px;
+            }
+
+            .team-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .register-container {
+                padding: 30px;
+            }
+
+            section {
+                padding: 60px 20px;
+            }
+
+            .section-title {
+                font-size: 2rem;
+                margin-bottom: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .hero-desc {
+                font-size: 1rem;
+            }
+
+            .mechanics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .team-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Grid -->
+    <div class="grid-bg"></div>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-glow-1"></div>
+        <div class="hero-glow-2"></div>
+        
+        <div class="hero-content">
+            <h1 class="hero-title">MANHUNT</h1>
+            <h2 class="hero-subtitle">Campus Survival Challenge</h2>
+            <p class="hero-desc">🎯 Find the victim before anyone else does.</p>
+            <p style="color: var(--text-gray); margin-bottom: 30px;">Team up. Search smart. Move fast. Win big. 4 rounds. Multiple chances to claim victory.</p>
+
+            <div class="button-group">
+                <a href="https://ciencia26.vercel.app/event/manhunt" target="_blank" class="btn btn-primary" style="text-decoration: none;">
+                    ⚡ REGISTER NOW
+                </a>
+                <button class="btn btn-secondary" onclick="scrollToRegister()">Learn More</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--primary);">₹50</div>
+                    <div class="stat-label">Per Person</div>
+                </div>
+                <div class="stat-card cyan">
+                    <div class="stat-value" style="color: var(--secondary);">4 hrs</div>
+                    <div class="stat-label">Total Duration</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-value" style="color: #a855f7;">4 Max</div>
+                    <div class="stat-label">Team Size</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GAME MECHANICS -->
+    <section style="background: linear-gradient(180deg, transparent, rgba(255, 0, 110, 0.05), transparent);">
+        <div class="section-max-width">
+            <h2 class="section-title">
+                <span class="gradient-text">How The Hunt Works</span>
+            </h2>
+
+            <div class="mechanics-grid">
+                <div class="mechanic-card" style="--color: var(--primary);">
+                    <div class="mechanic-number">01</div>
+                    <div class="mechanic-icon" style="background-color: rgba(255, 0, 110, 0.2); color: var(--primary);">
+                        📍
+                    </div>
+                    <h3 class="mechanic-title">Hide & Seek</h3>
+                    <p class="mechanic-desc">One victim hides somewhere on campus. Teams scatter to find them.</p>
+                </div>
+
+                <div class="mechanic-card" style="--color: var(--secondary);">
+                    <div class="mechanic-number">02</div>
+                    <div class="mechanic-icon" style="background-color: rgba(0, 245, 255, 0.2); color: var(--secondary);">
+                        🎯
+                    </div>
+                    <h3 class="mechanic-title">Smart Strategy</h3>
+                    <p class="mechanic-desc">Use observation, teamwork, and campus knowledge to locate the victim.</p>
+                </div>
+
+                <div class="mechanic-card" style="--color: var(--accent-gold);">
+                    <div class="mechanic-number">03</div>
+                    <div class="mechanic-icon" style="background-color: rgba(255, 215, 0, 0.2); color: var(--accent-gold);">
+                        ⚠️
+                    </div>
+                    <h3 class="mechanic-title">Shrinking Zones</h3>
+                    <p class="mechanic-desc">Search area shrinks every 15 min. Restricted zones force intense final rounds.</p>
+                </div>
+
+                <div class="mechanic-card" style="--color: var(--accent-green);">
+                    <div class="mechanic-number">04</div>
+                    <div class="mechanic-icon" style="background-color: rgba(0, 255, 136, 0.2); color: var(--accent-green);">
+                        🏆
+                    </div>
+                    <h3 class="mechanic-title">Verify & Win</h3>
+                    <p class="mechanic-desc">First team to find and verify the victim wins the round. 4 rounds = 4 chances!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DYNAMIC GAMEPLAY -->
+    <section style="background: linear-gradient(180deg, transparent, rgba(255, 0, 110, 0.05), transparent);">
+        <div class="section-max-width">
+            <h2 class="section-title">Gameplay Twist</h2>
+
+            <div class="twist-grid">
+                <div class="twist-card" style="border-color: var(--primary);">
+                    <div class="twist-icon">⏱️</div>
+                    <div class="twist-label" style="color: var(--primary);">15 MIN</div>
+                    <div class="twist-desc">Search area shrinks</div>
+                </div>
+                <div class="twist-card" style="border-color: var(--accent-gold);">
+                    <div class="twist-icon">🔥</div>
+                    <div class="twist-label" style="color: var(--accent-gold);">ZONE UP</div>
+                    <div class="twist-desc">Areas go off-limits</div>
+                </div>
+                <div class="twist-card" style="border-color: var(--secondary);">
+                    <div class="twist-icon">⚠️</div>
+                    <div class="twist-label" style="color: var(--secondary);">VICTIM MOVE</div>
+                    <div class="twist-desc">Relocates to escape</div>
+                </div>
+            </div>
+
+            <div class="alert-box">
+                <strong>⚡ INTENSITY ALERT:</strong> As zones restrict and time tightens, both hunters and victim get pushed into smaller areas. The final minutes are CHAOS. The final TEAM to find wins BIG.
+            </div>
+        </div>
+    </section>
+
+    <!-- PRIZE POOL -->
+    <section style="background: linear-gradient(180deg, rgba(255, 215, 0, 0.1), transparent);">
+        <div class="section-max-width">
+            <h2 class="section-title">
+                <span class="gold-text">💰 Prize Pool</span>
+            </h2>
+
+            <div style="max-width: 800px; margin: 0 auto; margin-bottom: 50px;">
+                <div style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 140, 0, 0.1)); border: 2px solid rgba(255, 215, 0, 0.4); border-radius: 20px; padding: 50px 30px; text-align: center;">
+                    <div style="font-size: 0.9rem; color: var(--text-gray); margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Total Prize Pool</div>
+                    <div style="font-size: 4rem; font-weight: 900; color: var(--accent-gold); margin-bottom: 20px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);">Coming Soon</div>
+                    <p style="color: var(--text-gray); font-size: 1.1rem;">Exciting prizes worth competing for!</p>
+                </div>
+            </div>
+
+            <div class="mechanics-grid">
+                <div class="mechanic-card" style="border-color: var(--accent-gold); background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), transparent);">
+                    <div class="mechanic-icon" style="background-color: rgba(255, 215, 0, 0.2); color: var(--accent-gold);">
+                        🥇
+                    </div>
+                    <h3 class="mechanic-title">Round 1</h3>
+                    <p class="mechanic-desc" style="color: var(--accent-gold); font-weight: 700; font-size: 1.1rem;">Coming Soon</p>
+                </div>
+
+                <div class="mechanic-card" style="border-color: var(--secondary); background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), transparent);">
+                    <div class="mechanic-icon" style="background-color: rgba(0, 245, 255, 0.2); color: var(--secondary);">
+                        🥈
+                    </div>
+                    <h3 class="mechanic-title">Round 2</h3>
+                    <p class="mechanic-desc" style="color: var(--secondary); font-weight: 700; font-size: 1.1rem;">Coming Soon</p>
+                </div>
+
+                <div class="mechanic-card" style="border-color: var(--primary); background: linear-gradient(135deg, rgba(255, 0, 110, 0.1), transparent);">
+                    <div class="mechanic-icon" style="background-color: rgba(255, 0, 110, 0.2); color: var(--primary);">
+                        🥉
+                    </div>
+                    <h3 class="mechanic-title">Round 3</h3>
+                    <p class="mechanic-desc" style="color: var(--primary); font-weight: 700; font-size: 1.1rem;">Coming Soon</p>
+                </div>
+
+                <div class="mechanic-card" style="border-color: var(--accent-green); background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), transparent);">
+                    <div class="mechanic-icon" style="background-color: rgba(0, 255, 136, 0.2); color: var(--accent-green);">
+                        🏅
+                    </div>
+                    <h3 class="mechanic-title">Round 4</h3>
+                    <p class="mechanic-desc" style="color: var(--accent-green); font-weight: 700; font-size: 1.1rem;">Coming Soon</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HINT SYSTEM -->
+    <section>
+        <div class="section-max-width">
+            <h2 class="section-title">
+                <span class="gold-text">💡 Hint System</span>
+            </h2>
+
+            <div class="hint-container">
+                <p class="hint-desc">Random hints drop every 15 minutes to keep the hunt alive.</p>
+                
+                <div class="hints-list">
+                    <div class="hint-item">Campus Landmarks</div>
+                    <div class="hint-item">Building Names</div>
+                    <div class="hint-item">Hangout Spots</div>
+                    <div class="hint-item">Environmental Clues</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RULES -->
+    <section>
+        <div class="section-max-width">
+            <h2 class="section-title" style="color: #ef4444;">⚠️ Rules of Engagement</h2>
+
+            <div class="rules-grid">
+                <div class="rule-item">✅ No restricted zones</div>
+                <div class="rule-item">✅ Respect campus property</div>
+                <div class="rule-item">✅ No physical contact with victim</div>
+                <div class="rule-item">✅ No locked rooms or restrooms</div>
+                <div class="rule-item">❌ Cheating = Disqualification</div>
+                <div class="rule-item">❌ Safety violations = Out</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COORDINATORS -->
+    <section style="background: linear-gradient(180deg, rgba(0, 245, 255, 0.05), rgba(255, 0, 110, 0.05));">
+        <div class="section-max-width">
+            <h2 class="section-title">
+                <span class="gradient-text">📞 Event Coordinators</span>
+            </h2>
+
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div class="mechanics-grid" style="max-width: 600px; margin: 0 auto;">
+                    <div class="mechanic-card" style="border-color: var(--primary); background: linear-gradient(135deg, rgba(255, 0, 110, 0.1), transparent); text-align: center;">
+                        <div class="mechanic-icon" style="background-color: rgba(255, 0, 110, 0.2); color: var(--primary); margin: 0 auto;">
+                            👤
+                        </div>
+                        <h3 class="mechanic-title" style="color: var(--primary);">Hareeshwar</h3>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin: 15px 0;">
+                            <span style="font-size: 1.3rem;">📱</span>
+                            <a href="tel:+919121880668" style="color: var(--primary); font-weight: 700; text-decoration: none; font-size: 1.1rem;">9121880668</a>
+                        </div>
+                    </div>
+
+                    <div class="mechanic-card" style="border-color: var(--secondary); background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), transparent); text-align: center;">
+                        <div class="mechanic-icon" style="background-color: rgba(0, 245, 255, 0.2); color: var(--secondary); margin: 0 auto;">
+                            👤
+                        </div>
+                        <h3 class="mechanic-title" style="color: var(--secondary);">Vishal</h3>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin: 15px 0;">
+                            <span style="font-size: 1.3rem;">📱</span>
+                            <a href="tel:+918555004384" style="color: var(--secondary); font-weight: 700; text-decoration: none; font-size: 1.1rem;">8555004384</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 40px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <p style="color: var(--text-gray); font-size: 1rem;">Have questions? Reach out to our coordinators for more information!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- WHY JOIN -->
+    <section style="background: linear-gradient(180deg, transparent, rgba(0, 255, 136, 0.1));">
+        <div class="section-max-width">
+            <h2 class="section-title">Why You Should Hunt</h2>
+
+            <div class="why-grid">
+                <div class="why-card">
+                    <div class="why-emoji">🎮</div>
+                    <h3 class="why-title">Real-Life Game</h3>
+                    <p class="why-desc">Experience hunting and strategy like never before.</p>
+                </div>
+
+                <div class="why-card">
+                    <div class="why-emoji">👥</div>
+                    <h3 class="why-title">Team Bonding</h3>
+                    <p class="why-desc">Win with your squad. Create unforgettable memories.</p>
+                </div>
+
+                <div class="why-card">
+                    <div class="why-emoji">🏆</div>
+                    <h3 class="why-title">Bragging Rights</h3>
+                    <p class="why-desc">Become a legend on campus. Winners get prizes!</p>
+                </div>
+
+                <div class="why-card">
+                    <div class="why-emoji">🔥</div>
+                    <h3 class="why-title">Pure Adrenaline</h3>
+                    <p class="why-desc">Feel the rush of competition and victory.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- REGISTRATION -->
+    <section id="register-section">
+        <div class="register-container">
+            <h2 class="register-title">Ready to Hunt?</h2>
+
+            <div class="form-group">
+                <p style="text-align: center; color: var(--text-gray); margin-bottom: 30px; font-size: 1.1rem;">
+                    Click the button below to register for the MANHUNT Campus Survival Challenge
+                </p>
+            </div>
+
+            <a href="https://ciencia26.vercel.app/event/manhunt" target="_blank" class="register-btn" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
+                🎯 JOIN THE HUNT
+            </a>
+
+            <p class="register-note">
+                Limited spots available. Hunt begins soon!
+            </p>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-main">Find the victim before anyone else does.</div>
+        <div class="footer-sub">© 2024 MANHUNT Campus Challenge. Built for hunters.</div>
+    </footer>
+
+    <script>
+        function scrollToRegister() {
+            const registerSection = document.getElementById('register-section');
+            registerSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Smooth scrolling for all links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
